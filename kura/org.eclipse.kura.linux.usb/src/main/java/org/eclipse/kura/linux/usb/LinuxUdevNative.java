@@ -97,7 +97,13 @@ public class LinuxUdevNative {
 
             List<UsbTtyDevice> ttyDevices = (List<UsbTtyDevice>) LinuxUdevNative.getUsbDevices("tty");
             for (UsbTtyDevice ttyDevice : ttyDevices) {
-                m_ttyDevices.put(ttyDevice.getDeviceNode(), ttyDevice);
+                Integer interfaceNumber = UsbTtyInterfaceShit.getInterfaceNumber(ttyDevice.getDeviceNode());
+                UsbTtyDevice ttyDeviceWithInterface = new UsbTtyDevice(ttyDevice.getVendorId(),
+                        ttyDevice.getProductId(), ttyDevice.getManufacturerName(), ttyDevice.getProductName(),
+                        ttyDevice.getUsbBusNumber(), ttyDevice.getUsbDevicePath(), ttyDevice.getDeviceNode(),
+                        interfaceNumber);
+                // m_ttyDevices.put(ttyDevice.getDeviceNode(), ttyDevice);
+                m_ttyDevices.put(ttyDevice.getDeviceNode(), ttyDeviceWithInterface);
             }
 
             start();
@@ -213,7 +219,14 @@ public class LinuxUdevNative {
             String name = ((UsbTtyDevice) usbDevice).getDeviceNode();
             if (name != null) {
                 if (type.compareTo(UdevEventType.ATTACHED.name()) == 0) {
-                    m_ttyDevices.put(name, (UsbTtyDevice) usbDevice);
+                    UsbTtyDevice ttyDevice = (UsbTtyDevice) usbDevice;
+                    Integer interfaceNumber = UsbTtyInterfaceShit.getInterfaceNumber(ttyDevice.getDeviceNode());
+                    UsbTtyDevice ttyDeviceWithInterface = new UsbTtyDevice(ttyDevice.getVendorId(),
+                            ttyDevice.getProductId(), ttyDevice.getManufacturerName(), ttyDevice.getProductName(),
+                            ttyDevice.getUsbBusNumber(), ttyDevice.getUsbDevicePath(), ttyDevice.getDeviceNode(),
+                            interfaceNumber);
+                    m_ttyDevices.put(name, ttyDeviceWithInterface);
+                    // m_ttyDevices.put(name, (UsbTtyDevice) usbDevice);
                     this.m_linuxUdevListener.attached(usbDevice);
                 } else if (type.compareTo(UdevEventType.DETACHED.name()) == 0) {
                     UsbTtyDevice removedDevice = m_ttyDevices.remove(name);

@@ -686,12 +686,13 @@ public class NetworkServiceImpl implements NetworkService, EventHandler {
                 }
 
                 String resource = (String) event.getProperty(UsbDeviceEvent.USB_EVENT_RESOURCE_PROPERTY);
+                Integer interfaceNumber = (Integer) event.getProperty(UsbDeviceEvent.USB_EVENT_TTY_INTERFACE_NUMBER);
                 UsbDeviceType usbDeviceType = (UsbDeviceType) event
                         .getProperty(UsbDeviceEvent.USB_EVENT_DEVICE_TYPE_PROPERTY);
                 logger.debug("handleEvent() :: Found resource: {} of type {} for: {}", resource, usbDeviceType,
                         usbModem.getUsbPort());
                 if (usbDeviceType.equals(UsbDeviceType.USB_TTY_DEVICE)) {
-                    usbModem.addTtyDev(resource);
+                    usbModem.addTtyDev(resource, interfaceNumber);
                 } else if (usbDeviceType.equals(UsbDeviceType.USB_BLOCK_DEVICE)) {
                     usbModem.addBlockDev(resource);
                 }

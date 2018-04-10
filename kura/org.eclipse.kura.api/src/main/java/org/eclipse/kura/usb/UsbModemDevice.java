@@ -28,73 +28,86 @@ import org.osgi.annotation.versioning.ProviderType;
 public class UsbModemDevice extends AbstractUsbDevice implements ModemDevice {
 
     /** The TTY devices associated with modem **/
-    private final ArrayList<String> m_ttyDevs;
+    private final ArrayList<TtyDev> ttyDevs;
 
     /** The block devices associated with the modem **/
-    private final ArrayList<String> m_blockDevs;
+    private final ArrayList<String> blockDevs;
 
     public UsbModemDevice(String vendorId, String productId, String manufacturerName, String productName,
             String usbBusNumber, String usbDevicePath) {
         super(vendorId, productId, manufacturerName, productName, usbBusNumber, usbDevicePath);
 
-        this.m_ttyDevs = new ArrayList<String>();
-        this.m_blockDevs = new ArrayList<String>();
+        this.ttyDevs = new ArrayList<>();
+        this.blockDevs = new ArrayList<>();
     }
 
     public UsbModemDevice(AbstractUsbDevice usbDevice) {
         super(usbDevice);
 
-        this.m_ttyDevs = new ArrayList<String>();
-        this.m_blockDevs = new ArrayList<String>();
+        this.ttyDevs = new ArrayList<>();
+        this.blockDevs = new ArrayList<>();
     }
 
     @Override
     public List<String> getSerialPorts() {
-        return Collections.unmodifiableList(this.m_ttyDevs);
+        List<String> serialPorts = new ArrayList<>();
+        for (TtyDev dev : this.ttyDevs) {
+            serialPorts.add(dev.getPortName());
+        }
+        return serialPorts;
     }
 
     /**
      * @return sorted list of tty devs
      */
     public List<String> getTtyDevs() {
-        return Collections.unmodifiableList(this.m_ttyDevs);
+        return getSerialPorts();
     }
 
     /**
      * @return sorted list of block devs
      */
     public List<String> getBlockDevs() {
-        return Collections.unmodifiableList(this.m_blockDevs);
+        return Collections.unmodifiableList(this.blockDevs);
+    }
+
+    public void addTtyDev(String ttyDev, Integer interfaceNumber) {
+        TtyDev dev = new TtyDev(ttyDev, interfaceNumber);
+        if (!this.ttyDevs.contains(dev)) {
+            this.ttyDevs.add(new TtyDev(ttyDev, interfaceNumber));
+            Collections.sort(this.ttyDevs, new TtyDevComparator());
+        }
     }
 
     public void addTtyDev(String ttyDev) {
-        if (!this.m_ttyDevs.contains(ttyDev)) {
-            this.m_ttyDevs.add(ttyDev);
-            Collections.sort(this.m_ttyDevs, new DevNameComparator());
+        TtyDev dev = new TtyDev(ttyDev);
+        if (!this.ttyDevs.contains(dev)) {
+            this.ttyDevs.add(new TtyDev(ttyDev));
+            Collections.sort(this.ttyDevs, new TtyDevComparator());
         }
     }
 
     public void addBlockDev(String blockDev) {
-        if (!this.m_blockDevs.contains(blockDev)) {
-            this.m_blockDevs.add(blockDev);
-            Collections.sort(this.m_blockDevs, new DevNameComparator());
+        if (!this.blockDevs.contains(blockDev)) {
+            this.blockDevs.add(blockDev);
+            Collections.sort(this.blockDevs, new DevNameComparator());
         }
     }
 
     public boolean removeTtyDev(String ttyDev) {
-        return this.m_ttyDevs.remove(ttyDev);
+        return this.ttyDevs.remove(new TtyDev(ttyDev));
     }
 
     public boolean removeBlockDev(String blockDev) {
-        return this.m_blockDevs.remove(blockDev);
+        return this.blockDevs.remove(blockDev);
     }
 
     @Override
     public int hashCode() {
         final int prime = 37;
         int result = super.hashCode();
-        result = prime * result + (this.m_ttyDevs == null ? 0 : this.m_ttyDevs.hashCode());
-        result = prime * result + (this.m_blockDevs == null ? 0 : this.m_blockDevs.hashCode());
+        result = prime * result + (this.ttyDevs == null ? 0 : this.ttyDevs.hashCode());
+        result = prime * result + (this.blockDevs == null ? 0 : this.blockDevs.hashCode());
         return result;
     }
 
@@ -110,18 +123,18 @@ public class UsbModemDevice extends AbstractUsbDevice implements ModemDevice {
             return false;
         }
         UsbModemDevice other = (UsbModemDevice) obj;
-        if (this.m_ttyDevs == null) {
-            if (other.m_ttyDevs != null) {
+        if (this.ttyDevs == null) {
+            if (other.ttyDevs != null) {
                 return false;
             }
-        } else if (!this.m_ttyDevs.equals(other.m_ttyDevs)) {
+        } else if (!this.ttyDevs.equals(other.ttyDevs)) {
             return false;
         }
-        if (this.m_blockDevs == null) {
-            if (other.m_blockDevs != null) {
+        if (this.blockDevs == null) {
+            if (other.blockDevs != null) {
                 return false;
             }
-        } else if (!this.m_blockDevs.equals(other.m_blockDevs)) {
+        } else if (!this.blockDevs.equals(other.blockDevs)) {
             return false;
         }
         return true;
@@ -129,15 +142,15 @@ public class UsbModemDevice extends AbstractUsbDevice implements ModemDevice {
 
     @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("UsbModem [");
         sb.append("vendorId=").append(getVendorId());
         sb.append(", productId=").append(getProductId());
         sb.append(", manufName=").append(getManufacturerName());
         sb.append(", productName=").append(getProductName());
         sb.append(", usbPort=").append(getUsbPort());
-        sb.append(", ttyDevs=").append(this.m_ttyDevs.toString());
-        sb.append(", blockDevs=").append(this.m_blockDevs.toString());
+        sb.append(", ttyDevs=").append(this.ttyDevs.toString());
+        sb.append(", blockDevs=").append(this.blockDevs.toString());
         sb.append("]");
 
         return sb.toString();
@@ -195,6 +208,78 @@ public class UsbModemDevice extends AbstractUsbDevice implements ModemDevice {
             }
 
             return pos;
+        }
+    }
+
+    private class TtyDev {
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + getOuterType().hashCode();
+            result = prime * result + ((portName == null) ? 0 : portName.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            TtyDev other = (TtyDev) obj;
+            if (!getOuterType().equals(other.getOuterType()))
+                return false;
+            if (portName == null) {
+                if (other.portName != null)
+                    return false;
+            } else if (!portName.equals(other.portName))
+                return false;
+            return true;
+        }
+
+        private String portName;
+        private Integer interfaceNumber;
+
+        public TtyDev(String portName) {
+            this.portName = portName;
+        }
+
+        public TtyDev(String portName, Integer interfaceNumber) {
+            this.portName = portName;
+            this.interfaceNumber = interfaceNumber;
+        }
+
+        public String getPortName() {
+            return portName;
+        }
+
+        public Integer getInterfaceNumber() {
+            return interfaceNumber;
+        }
+
+        private UsbModemDevice getOuterType() {
+            return UsbModemDevice.this;
+        }
+
+    }
+
+    private class TtyDevComparator implements Comparator<TtyDev> {
+
+        @Override
+        /**
+         * If the devices have an interface number, use it for comparing.
+         * Otherwise use the port names.
+         */
+        public int compare(TtyDev dev1, TtyDev dev2) {
+            if (dev1.getInterfaceNumber() != null && dev2.getInterfaceNumber() != null) {
+                return dev1.getInterfaceNumber().compareTo(dev2.getInterfaceNumber());
+            } else {
+                return new DevNameComparator().compare(dev1.getPortName(), dev2.getPortName());
+            }
         }
     }
 }

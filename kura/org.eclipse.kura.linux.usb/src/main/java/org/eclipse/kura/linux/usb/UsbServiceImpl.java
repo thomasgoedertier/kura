@@ -126,6 +126,7 @@ public class UsbServiceImpl implements UsbService, LinuxUdevListener {
             map.put(UsbDeviceEvent.USB_EVENT_DEVICE_TYPE_PROPERTY, UsbDeviceType.USB_NET_DEVICE);
         } else if (device instanceof UsbTtyDevice) {
             map.put(UsbDeviceEvent.USB_EVENT_RESOURCE_PROPERTY, ((UsbTtyDevice) device).getDeviceNode());
+            map.put(UsbDeviceEvent.USB_EVENT_TTY_INTERFACE_NUMBER, ((UsbTtyDevice) device).getInterfaceNumber());
             map.put(UsbDeviceEvent.USB_EVENT_DEVICE_TYPE_PROPERTY, UsbDeviceType.USB_TTY_DEVICE);
         }
 

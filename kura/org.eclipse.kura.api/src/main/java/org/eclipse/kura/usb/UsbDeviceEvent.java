@@ -52,4 +52,11 @@ public interface UsbDeviceEvent {
      * @since 1.4
      **/
     public static final String USB_EVENT_DEVICE_TYPE_PROPERTY = "usb.device.type";
+
+    /**
+     * Number of the TTY interface
+     * 
+     * @since 1.4
+     **/
+    public static final String USB_EVENT_TTY_INTERFACE_NUMBER = "usb.tty.interface.number";
 }

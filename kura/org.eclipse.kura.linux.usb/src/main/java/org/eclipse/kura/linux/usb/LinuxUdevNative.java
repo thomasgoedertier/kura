@@ -227,7 +227,8 @@ public class LinuxUdevNative {
                             interfaceNumber);
                     m_ttyDevices.put(name, ttyDeviceWithInterface);
                     // m_ttyDevices.put(name, (UsbTtyDevice) usbDevice);
-                    this.m_linuxUdevListener.attached(usbDevice);
+                    // this.m_linuxUdevListener.attached(usbDevice);
+                    this.m_linuxUdevListener.attached(ttyDeviceWithInterface);
                 } else if (type.compareTo(UdevEventType.DETACHED.name()) == 0) {
                     UsbTtyDevice removedDevice = m_ttyDevices.remove(name);
                     if (removedDevice != null) {

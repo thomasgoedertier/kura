@@ -241,7 +241,8 @@ public class NetworkServiceImpl implements NetworkService, EventHandler {
                 }
                 if (device instanceof UsbTtyDevice) {
                     String deviceNode = ((UsbTtyDevice) device).getDeviceNode();
-                    usbModem.addTtyDev(deviceNode);
+                    Integer interfaceNumber = ((UsbTtyDevice) device).getInterfaceNumber();
+                    usbModem.addTtyDev(deviceNode, interfaceNumber);
                     logger.debug("activate() :: Adding tty resource: {} for {}", deviceNode, device.getUsbPort());
                 } else if (device instanceof UsbBlockDevice) {
                     String deviceNode = ((UsbBlockDevice) device).getDeviceNode();

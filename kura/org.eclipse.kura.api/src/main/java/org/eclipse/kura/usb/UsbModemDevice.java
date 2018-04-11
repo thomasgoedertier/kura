@@ -214,6 +214,11 @@ public class UsbModemDevice extends AbstractUsbDevice implements ModemDevice {
     private class TtyDev {
 
         @Override
+        public String toString() {
+            return "TtyDev [portName=" + portName + ", interfaceNumber=" + interfaceNumber + "]";
+        }
+
+        @Override
         public int hashCode() {
             final int prime = 31;
             int result = 1;
